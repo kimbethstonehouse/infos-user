@@ -8,7 +8,7 @@ export src-dir := $(top-dir)/src
 export bin-dir := $(top-dir)/bin
 
 lib-target := libinfos.a
-tool-targets := init ls shell sched-test1 sched-test2 cat date tictactoe
+tool-targets := init ls shell mandelbrot sched-test1 sched-test2 sched-test3 cat date tictactoe
 	
 export real-lib-target   := $(bin-dir)/$(lib-target)
 real-tool-targets := $(patsubst %,$(bin-dir)/%,$(tool-targets))
@@ -16,7 +16,7 @@ real-tool-clean-targets := $(patsubst %,__clean__$(bin-dir)/%,$(tool-targets))
 	
 lib-srcs := $(shell find $(lib-dir) | grep -E "\.cpp$$")
 lib-objs := $(lib-srcs:.cpp=.o)
-lib-cxxflags := -g -Wall -Wno-main -nostdlib -nostdinc -std=gnu++17 -O3 -I$(inc-dir) -fno-builtin -ffreestanding -mno-sse -mno-avx -fno-stack-protector
+lib-cxxflags := -g -Wall -Wno-main -nostdlib -nostdinc -std=gnu++17 -O3 -I$(inc-dir) -fno-builtin -ffreestanding -fno-stack-protector
 	
 fs-target := $(bin-dir)/rootfs.tar
 	
