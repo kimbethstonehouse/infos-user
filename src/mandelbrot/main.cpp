@@ -5,8 +5,6 @@
 static HFILE vc;
 
 struct Args {
-    int heightShared;
-    int widthShared;
     int threadNum;
 };
 
@@ -35,12 +33,11 @@ int64_t realMin = -2 * NORM_FACT;
 int64_t realMax = 1 * NORM_FACT;
 int64_t imagMin = -1 * NORM_FACT;
 int64_t imagMax = 1 * NORM_FACT;
+int64_t deltaReal, deltaImag;
 
 int width = 80; // frame is 80x25
 int height = 20; // todo: change back to 25
-
-int64_t deltaReal = (realMax - realMin)/(width - 1);
-int64_t deltaImag = (imagMax - imagMin)/(height - 1);
+int heightShared, widthShared;
 
 static void drawchar(int x, int y, int attr, unsigned char c)
 {
@@ -65,84 +62,63 @@ void output(int value, int i, int j) {
 }
 
 static void mandelbrot(void *arg) {
-//    Args args = *((Args *) arg);
-//
-//    int heightShared = args.heightShared;
-//    int widthShared = args.widthShared;
-//    int threadNum = args.threadNum;
+    int threadNum = *((int *) arg);
 
-//    for (int i = 0; i < heightShared; i++) {
-//        for (int j = 0; j < widthShared; j++) {
-//            int64_t real0, imag0, realq, imagq, real, imag;
-//            int count;
-//
-//            real0 = realMin + j*threadNum*deltaReal; // current real value
-//            imag0 = imagMax - i*threadNum*deltaImag;
-//
-//            real = real0;
-//            imag = imag0;
-//            for (count = 0; count < MAXITERATE; count++) {
-//                realq = (real * real) >> NORM_BITS;
-//                imagq = (imag * imag) >> NORM_BITS;
-//
-//                if ((realq + imagq) > ((int64_t) 4 * NORM_FACT)) break;
-//
-//                imag = ((real * imag) >> (NORM_BITS-1)) + imag0;
-//                real = realq - imagq + real0;
-//            }
-//
-//            output(count, i*threadNum, j*threadNum);
-//        }
-//    }
-//    drawchar(1*threadNum, 1*threadNum, RED, 'c');
-printf("hello");
+    for (int i = 0; i < heightShared; i++) {
+        for (int j = 0; j < widthShared; j++) {
+            int64_t real0, imag0, realq, imagq, real, imag;
+            int count;
+
+            real0 = realMin + j*threadNum*deltaReal; // current real value
+            imag0 = imagMax - i*threadNum*deltaImag;
+
+            real = real0;
+            imag = imag0;
+            for (count = 0; count < MAXITERATE; count++) {
+                realq = (real * real) >> NORM_BITS;
+                imagq = (imag * imag) >> NORM_BITS;
+
+                if ((realq + imagq) > ((int64_t) 4 * NORM_FACT)) break;
+
+                imag = ((real * imag) >> (NORM_BITS-1)) + imag0;
+                real = realq - imagq + real0;
+            }
+
+            output(count, i*threadNum, j*threadNum);
+        }
+    }
+
     stop_thread(HTHREAD_SELF);
 }
 
-//static void func(void *arg) {
-//    printf("hello");
-//}
-
 int main(const char *cmdline) {
-//    vc = open("/dev/vc0", 0);
-//
-//    if (is_error(vc)) {
-//        printf("error: unable to open vc");
-//        return 1;
-//    }
+    vc = open("/dev/vc0", 0);
+
+    if (is_error(vc)) {
+        printf("error: unable to open vc");
+        return 1;
+    }
 
     // todo: get from user
     int numThreads = 4; // todo: what if it doesn't divide nicely
     HTHREAD threads[numThreads];
 
-    int heightShared = height / numThreads;
-    int widthShared = width / numThreads;
+    heightShared = height / numThreads;
+    widthShared = width / numThreads;
 
-    printf("running sched test 3");
+    deltaReal = (realMax - realMin)/(width - 1);
+    deltaImag = (imagMax - imagMin)/(height - 1);
 
     for (unsigned int k = 0; k < numThreads; k++) {
-        Args args = Args();
-        args.heightShared = heightShared;
-        args.widthShared = widthShared;
-        args.threadNum = k;
-        printf("starting thread %u", k);
-        threads[k] = create_thread(mandelbrot, &args);
+        threads[k] = create_thread(mandelbrot, &k);
     }
 
-
-
     for (unsigned int i = 0; i < numThreads; i++) {
-        printf("joining thread %u", i);
         join_thread(threads[i]);
     }
 
-    printf("test compe;te");
-
-
-
-//    close(vc);
-    // wait for input to redraw the prompt
-    // so it doesn't ruin the lovely image
-//    getch();
+    close(vc);
+    // wait for input so the prompt doesn't ruin the lovely image
+    getch();
     return 0;
 }
