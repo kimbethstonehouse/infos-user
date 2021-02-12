@@ -2,11 +2,14 @@
 
 #include <infos.h>
 
-struct Args
-{
+struct Args {
     double x;
     double y;
 };
+
+#define MAXITERATE 100
+#define NORM_FACT 8192
+#define NORM_BITS 13
 
 static int mandelbrot(void *arg) {
     Args args = *((Args *) arg);
