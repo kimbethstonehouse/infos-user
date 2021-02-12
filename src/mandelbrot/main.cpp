@@ -5,7 +5,8 @@
 static HFILE vc;
 
 struct Args {
-    int threadNum;
+    int widthFrom;
+    int widthTo;
 };
 
 #define BLACK 0
@@ -29,18 +30,14 @@ struct Args {
 #define NORM_FACT 8192
 #define NORM_BITS 13
 
-int64_t realMin = -2 * NORM_FACT;
-int64_t realMax = 1 * NORM_FACT;
-int64_t imagMin = -1 * NORM_FACT;
-int64_t imagMax = 1 * NORM_FACT;
+int64_t realMin, realMax;
+int64_t imagMin, imagMax;
 int64_t deltaReal, deltaImag;
 
 int width = 80; // frame is 80x25
-int height = 20; // todo: change back to 25
-int heightShared, widthShared;
+int height = 25; // todo: change back to 25
 
-static void drawchar(int x, int y, int attr, unsigned char c)
-{
+static void drawchar(int x, int y, int attr, unsigned char c) {
     uint16_t u = (attr << 8) | c;
     pwrite(vc, (const char *)&u, sizeof(u), x + (y * 80));
 }
@@ -62,15 +59,17 @@ void output(int value, int i, int j) {
 }
 
 static void mandelbrot(void *arg) {
-    int threadNum = *((int *) arg);
+    Args args = *((Args *) arg);
+    int widthFrom = args.widthFrom;
+    int widthTo = args.widthTo;
 
-    for (int i = 0; i < heightShared; i++) {
-        for (int j = 0; j < widthShared; j++) {
+    for (int i = 0; i < height; i++) {
+        for (int j = widthFrom; j < widthTo; j++) {
             int64_t real0, imag0, realq, imagq, real, imag;
             int count;
 
-            real0 = realMin + j*threadNum*deltaReal; // current real value
-            imag0 = imagMax - i*threadNum*deltaImag;
+            real0 = realMin + j*deltaReal; // current real value
+            imag0 = imagMax - i*deltaImag;
 
             real = real0;
             imag = imag0;
@@ -84,7 +83,7 @@ static void mandelbrot(void *arg) {
                 real = realq - imagq + real0;
             }
 
-            output(count, i*threadNum, j*threadNum);
+            output(count, i, j);
         }
     }
 
@@ -103,18 +102,25 @@ int main(const char *cmdline) {
     int numThreads = 4; // todo: what if it doesn't divide nicely
     HTHREAD threads[numThreads];
 
-    heightShared = height / numThreads;
-    widthShared = width / numThreads;
+    realMin = -2 * NORM_FACT;
+    realMax = 1 * NORM_FACT;
+    imagMin = -1 * NORM_FACT;
+    imagMax = 1 * NORM_FACT;
 
     deltaReal = (realMax - realMin)/(width - 1);
     deltaImag = (imagMax - imagMin)/(height - 1);
 
+    int widthShared = width / numThreads;
+
     for (unsigned int k = 0; k < numThreads; k++) {
-        threads[k] = create_thread(mandelbrot, &k);
+        Args args = Args();
+        args.widthFrom = k*widthShared;
+        args.widthTo = (k+1)*widthShared;
+        threads[k] = create_thread(mandelbrot, &args);
+        join_thread(threads[k]);
     }
 
-    for (unsigned int i = 0; i < numThreads; i++) {
-        join_thread(threads[i]);
+    for (unsigned int k = 0; k < numThreads; k++) {
     }
 
     close(vc);
