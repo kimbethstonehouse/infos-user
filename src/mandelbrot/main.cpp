@@ -26,16 +26,16 @@ struct Args {
 #define YELLOW 14
 #define WHITE 15
 
-#define MAXITERATE 100
-#define NORM_FACT 8192
-#define NORM_BITS 13
+#define MAXITERATE 10000
+#define NORM_FACT 67108864
+#define NORM_BITS 26
 
 int64_t realMin, realMax;
 int64_t imagMin, imagMax;
 int64_t deltaReal, deltaImag;
 
 int width = 80; // frame is 80x25
-int height = 25; // todo: change back to 25
+int height = 25;
 
 static void drawchar(int x, int y, int attr, unsigned char c) {
     uint16_t u = (attr << 8) | c;
@@ -43,12 +43,12 @@ static void drawchar(int x, int y, int attr, unsigned char c) {
 }
 
 void output(int value, int i, int j) {
-    if (value == 100) {drawchar(j, i, BLACK, ' ');}
-    else if (value > 90) {drawchar(j, i, RED, '*');}
-    else if (value > 70) {drawchar(j, i, L_RED, '*');}
-    else if (value > 50) {drawchar(j, i, ORANGE, '*');}
-    else if (value > 30) {drawchar(j, i, YELLOW, '*');}
-    else if (value > 20) {drawchar(j, i, L_GREEN, '*');}
+    if (value == 10000) {drawchar(j, i, BLACK, ' ');}
+    else if (value > 9000) {drawchar(j, i, RED, '*');}
+    else if (value > 5000) {drawchar(j, i, L_RED, '*');}
+    else if (value > 1000) {drawchar(j, i, ORANGE, '*');}
+    else if (value > 500) {drawchar(j, i, YELLOW, '*');}
+    else if (value > 100) {drawchar(j, i, L_GREEN, '*');}
     else if (value > 10) {drawchar(j, i, GREEN, '*');}
     else if (value > 5) {drawchar(j, i, L_CYAN, '*');}
     else if (value > 4) {drawchar(j, i, CYAN, '*');}
@@ -99,7 +99,8 @@ int main(const char *cmdline) {
     }
 
     // todo: get from users
-    int numThreads = 6; // todo: what if it doesn't divide nicely
+    printf("\033\x09How many threads would you like to use?\n");
+    int numThreads = getch(); // todo: what if it doesn't divide nicely
     HTHREAD threads[numThreads];
 
     realMin = -2 * NORM_FACT;
