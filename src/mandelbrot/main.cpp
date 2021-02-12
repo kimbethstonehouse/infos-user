@@ -98,8 +98,8 @@ int main(const char *cmdline) {
         return 1;
     }
 
-    // todo: get from user
-    int numThreads = 4; // todo: what if it doesn't divide nicely
+    // todo: get from users
+    int numThreads = 6; // todo: what if it doesn't divide nicely
     HTHREAD threads[numThreads];
 
     realMin = -2 * NORM_FACT;
@@ -114,8 +114,17 @@ int main(const char *cmdline) {
 
     for (unsigned int k = 0; k < numThreads; k++) {
         Args args = Args();
-        args.widthFrom = k*widthShared;
-        args.widthTo = (k+1)*widthShared;
+
+        // In the case that the screen width doesn't divide evenly by
+        // the number of threads, the last thread takes any extra
+        if (k == numThreads - 1) {
+            args.widthFrom = k*widthShared;
+            args.widthTo = width;
+        } else {
+            args.widthFrom = k*widthShared;
+            args.widthTo = (k+1)*widthShared;
+        }
+
         threads[k] = create_thread(mandelbrot, &args);
         join_thread(threads[k]);
     }
