@@ -3,107 +3,96 @@
 #include <infos.h>
 
 struct Args {
-    double x;
-    double y;
+    int64_t x;
+    int64_t y;
 };
+
+char *black = "\033\x00*";
+char *blue = "\033\x01*";
+char *green = "\033\x02*";
+char *cyan = "\033\x03*";
+char *red = "\033\x04*";
+char *magenta = "\033\x05*";
+char *orange = "\033\x06*";
+char *l_grey = "\033\x07*";
+char *grey = "\033\x08*";
+char *l_blue = "\033\x09*";
+char *l_green = "\033\x0a*";
+char *l_cyan = "\033\x0b*";
+char *l_red = "\033\x0c*";
+char *l_magenta = "\033\x0d*";
+char *yellow = "\033\x0e*";
+char *white = "\033\x0f*";
 
 #define MAXITERATE 100
 #define NORM_FACT 8192
 #define NORM_BITS 13
 
-static int mandelbrot(void *arg) {
+int mandelbrot(void *arg) {
     Args args = *((Args *) arg);
-    double real = args.x;
-    double imag = args.y;
 
-    int limit = 100;
-    double zReal = real;
-    double zImag = imag;
+    int64_t real0 = args.x;
+    int64_t imag0 = args.y;
 
-    for (int i = 0; i < limit; ++i) {
-        double r2 = zReal * zReal;
-        double i2 = zImag * zImag;
+    int64_t realq, imagq, real, imag;
+    int i;
 
-        if (r2 + i2 > 4.0) return i;
+    real = real0;
+    imag = imag0;
+    for (i = 0; i < MAXITERATE; i++) {
+        realq = (real * real) >> NORM_BITS;
+        imagq = (imag * imag) >> NORM_BITS;
 
-        zImag = 2.0 * zReal * zImag + imag;
-        zReal = r2 - i2 + real;
+        if ((realq + imagq) > ((int64_t) 4 * NORM_FACT)) return i;
+
+        imag = ((real * imag) >> (NORM_BITS-1)) + imag0;
+        real = realq - imagq + real0;
     }
-    return limit;
+
+    return i;
+}
+
+void output(int value) {
+    if (value == 100) {printf(" ");}
+    else if (value > 90) {printf(red);}
+    else if (value > 70) {printf(l_red);}
+    else if (value > 50) {printf(orange);}
+    else if (value > 30) {printf(yellow);}
+    else if (value > 20) {printf(l_green);}
+    else if (value > 10) {printf(green);}
+    else if (value > 5) {printf(l_cyan);}
+    else if (value > 4) {printf(cyan);}
+    else if (value > 3) {printf(l_blue);}
+    else if (value > 2) {printf(blue);}
+    else if (value > 1) {printf(magenta);}
+    else {printf(l_magenta);}
 }
 
 int main(const char *cmdline) {
 
-    int width = 20; //number of characters fitting horizontally on my screen
-    int heigth = 15; //number of characters fitting vertically on my screen
+    // frame is 80 x 25
+    int width = 80; // number of characters fitting horizontally on my screen
+    int height = 24; // number of characters fitting vertically on my screen
 
-    double x_start = -2.0;
-    double x_fin = 1.0;
-    double y_start = -1.0;
-    double y_fin = 1.0;
+    int64_t realMin = -2 * NORM_FACT;
+    int64_t realMax = 1 * NORM_FACT;
+    int64_t imagMin = -1 * NORM_FACT;
+    int64_t imagMax = 1 * NORM_FACT;
 
-    //~ double x_start = -0.25;
-    //~ double x_fin = 0.05;
-    //~ double y_start = -0.95;
-    //~ double y_fin = -0.75;
+    int64_t deltaReal = (realMax - realMin)/(width - 1);
+    int64_t deltaImag = (imagMax - imagMin)/(height - 1);
 
-    //~ double x_start = -0.13;
-    //~ double x_fin = -0.085;
-    //~ double y_start = -0.91;
-    //~ double y_fin = -0.88;
-
-    double dx = (x_fin - x_start)/(width - 1);
-    double dy = (y_fin - y_start)/(heigth - 1);
-
-    char * char_ = "\u2588";
-
-    char *black = "\033[22;30m\u2588";
-    char *red = "\033[22;31m\u2588";
-    char *l_red = "\033[01;31m\u2588";
-    char *green = "\033[22;32m\u2588";
-    char *l_green = "\033[01;32m\u2588";
-    char *orange = "\033[22;33m\u2588";
-    char *yellow = "\033[01;33m\u2588";
-    char *blue = "\033[22;34m\u2588";
-    char *l_blue = "\033[01;34m\u2588";
-    char *magenta = "\033[22;35m\u2588";
-    char *l_magenta = "\033[01;35m\u2588";
-    char *cyan = "\033[22;36m\u2588";
-    char *l_cyan = "\033[01;36m\u2588";
-    char *gray = "\033[22;37m\u2588";
-    char *white = "\033[01;37m\u2588";
-
-//    HTHREAD threads[20][15];
-
-    for (int i = 0; i < heigth; i++) {
+    for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
+            // todo: split this work among threads
 
             Args args = Args();
-            args.x = x_start + j*dx; // current real value
-            args.y = y_fin - i*dy;
+            args.x = realMin + j*deltaReal; // current real value
+            args.y = imagMax - i*deltaImag;
 
             int value = mandelbrot(&args);
-//            threads[i][j] = create_thread(mandelbrot, (void *) xy);
-
-            if (value == 100) {printf(" ");}
-            else if (value > 90) {printf(red);}
-            else if (value > 70) {printf(l_red);}
-            else if (value > 50) {printf(orange);}
-            else if (value > 30) {printf(yellow);}
-            else if (value > 20) {printf(l_green);}
-            else if (value > 10) {printf(green);}
-            else if (value > 5) {printf(l_cyan);}
-            else if (value > 4) {printf(cyan);}
-            else if (value > 3) {printf(l_blue);}
-            else if (value > 2) {printf(blue);}
-            else if (value > 1) {printf(magenta);}
-            else {printf(l_magenta);}
-
-//            printf("\033[0m");
-
-//            join_thread(threads[i][j]);
+            output(value);
         }
-        printf("\n");
     }
 
     return 0;
