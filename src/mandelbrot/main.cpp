@@ -98,9 +98,8 @@ int main(const char *cmdline) {
         return 1;
     }
 
-    // todo: get from users
     printf("\033\x09How many threads would you like to use?\n");
-    int numThreads = getch(); // todo: what if it doesn't divide nicely
+    int numThreads = getch();
     HTHREAD threads[numThreads];
 
     realMin = -2 * NORM_FACT;
