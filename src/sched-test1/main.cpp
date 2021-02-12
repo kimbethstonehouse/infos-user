@@ -6,9 +6,9 @@ static void thread_proc(void *arg)
 {
 	unsigned int thread_num = (unsigned int)(unsigned long)arg;
 
-	char name_buffer[16] = {0};
-	sprintf(name_buffer, "thread/%d", thread_num);
-	set_thread_name(HTHREAD_SELF, name_buffer);
+//	char name_buffer[16] = {0};
+//	sprintf(name_buffer, "thread/%d", thread_num);
+//	set_thread_name(HTHREAD_SELF, name_buffer); //todo: some sort of race
 
 	printf("Thread %d Running!\n", thread_num);
 
