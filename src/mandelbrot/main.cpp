@@ -97,11 +97,10 @@ int main(const char *cmdline) {
         return 1;
     }
 
-    printf("\033\x09How many threads would you like to use?\n");
+//    printf("\033\x09How many threads would you like to use?\n");
 //    int numThreads = getch();
-    int numThreads = 2;
+    int numThreads = 8;
     HTHREAD threads[numThreads];
-    last_pixel = 0;
 
     realMin = -2 * NORM_FACT;
     realMax = 1 * NORM_FACT;
