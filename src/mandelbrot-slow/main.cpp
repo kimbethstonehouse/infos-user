@@ -4,6 +4,11 @@
 
 static HFILE vc;
 
+struct Args {
+    int widthFrom;
+    int widthTo;
+};
+
 #define BLACK 0
 #define BLUE 2
 #define GREEN 3
@@ -32,10 +37,6 @@ int64_t deltaReal, deltaImag;
 int width = 80; // frame is 80x25
 int height = 25;
 
-int next_pixel = 0;
-int *next_pixel_ptr = &next_pixel;
-int last_pixel;
-
 static void drawchar(int x, int y, int attr, unsigned char c) {
     uint16_t u = (attr << 8) | c;
     pwrite(vc, (const char *)&u, sizeof(u), x + (y * 80));
@@ -58,32 +59,32 @@ void output(int value, int i, int j) {
 }
 
 static void mandelbrot(void *arg) {
-    int my_next_pixel = fetch_and_add(next_pixel_ptr, 1);
+    Args args = *((Args *) arg);
+    int widthFrom = args.widthFrom;
+    int widthTo = args.widthTo;
 
-    while (my_next_pixel <= last_pixel) {
-        int x = my_next_pixel % width;
-        int y = my_next_pixel / width;
+    for (int i = 0; i < height; i++) {
+        for (int j = widthFrom; j < widthTo; j++) {
+            int64_t real0, imag0, realq, imagq, real, imag;
+            int count;
 
-        int64_t real0, imag0, realq, imagq, real, imag;
-        int count;
+            real0 = realMin + j*deltaReal; // current real value
+            imag0 = imagMax - i*deltaImag;
 
-        real0 = realMin + x*deltaReal; // current real value
-        imag0 = imagMax - y*deltaImag;
+            real = real0;
+            imag = imag0;
+            for (count = 0; count < MAXITERATE; count++) {
+                realq = (real * real) >> NORM_BITS;
+                imagq = (imag * imag) >> NORM_BITS;
 
-        real = real0;
-        imag = imag0;
-        for (count = 0; count < MAXITERATE; count++) {
-            realq = (real * real) >> NORM_BITS;
-            imagq = (imag * imag) >> NORM_BITS;
+                if ((realq + imagq) > ((int64_t) 4 * NORM_FACT)) break;
 
-            if ((realq + imagq) > ((int64_t) 4 * NORM_FACT)) break;
+                imag = ((real * imag) >> (NORM_BITS-1)) + imag0;
+                real = realq - imagq + real0;
+            }
 
-            imag = ((real * imag) >> (NORM_BITS-1)) + imag0;
-            real = realq - imagq + real0;
+            output(count, i, j);
         }
-
-        output(count, y, x);
-        my_next_pixel = fetch_and_add(next_pixel_ptr, 1);
     }
 
     stop_thread(HTHREAD_SELF);
@@ -99,9 +100,8 @@ int main(const char *cmdline) {
 
     printf("\033\x09How many threads would you like to use?\n");
 //    int numThreads = getch();
-    int numThreads = 2;
+    int numThreads = 16;
     HTHREAD threads[numThreads];
-    last_pixel = 0;
 
     realMin = -2 * NORM_FACT;
     realMax = 1 * NORM_FACT;
@@ -111,10 +111,24 @@ int main(const char *cmdline) {
     deltaReal = (realMax - realMin)/(width - 1);
     deltaImag = (imagMax - imagMin)/(height - 1);
 
-    last_pixel = width * height;
+    int widthShared = width / numThreads;
+
+    Args args[numThreads];
 
     for (unsigned int k = 0; k < numThreads; k++) {
-        threads[k] = create_thread(mandelbrot, (void *) 1);
+        Args *arg = &args[k];
+
+        // In the case that the screen width doesn't divide evenly by
+        // the number of threads, the last thread takes any extra
+        if (k == numThreads - 1) {
+            arg->widthFrom = k*widthShared;
+            arg->widthTo = width;
+        } else {
+            arg->widthFrom = k*widthShared;
+            arg->widthTo = (k+1)*widthShared;
+        }
+
+        threads[k] = create_thread(mandelbrot, arg);
     }
 
     for (unsigned int k = 0; k < numThreads; k++) {
@@ -124,6 +138,6 @@ int main(const char *cmdline) {
     close(vc);
     // wait for input so the prompt doesn't ruin the lovely image
     // remove this when timing!
-//    getch();
+    getch();
     return 0;
 }
