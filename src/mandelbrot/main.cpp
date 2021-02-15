@@ -136,6 +136,7 @@ int main(const char *cmdline) {
 
     close(vc);
     // wait for input so the prompt doesn't ruin the lovely image
-    getch();
+    // remove this when timing!
+//    getch();
     return 0;
 }
