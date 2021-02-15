@@ -26,7 +26,7 @@ struct Args {
 #define YELLOW 14
 #define WHITE 15
 
-#define MAXITERATE 10000
+#define MAXITERATE 10000000
 #define NORM_FACT 67108864
 #define NORM_BITS 26
 
@@ -43,10 +43,10 @@ static void drawchar(int x, int y, int attr, unsigned char c) {
 }
 
 void output(int value, int i, int j) {
-    if (value == 10000) {drawchar(j, i, BLACK, ' ');}
-    else if (value > 9000) {drawchar(j, i, RED, '*');}
-    else if (value > 5000) {drawchar(j, i, L_RED, '*');}
-    else if (value > 1000) {drawchar(j, i, ORANGE, '*');}
+    if (value == 10000000) {drawchar(j, i, BLACK, ' ');}
+    else if (value > 9000000) {drawchar(j, i, RED, '*');}
+    else if (value > 5000000) {drawchar(j, i, L_RED, '*');}
+    else if (value > 1000000) {drawchar(j, i, ORANGE, '*');}
     else if (value > 500) {drawchar(j, i, YELLOW, '*');}
     else if (value > 100) {drawchar(j, i, L_GREEN, '*');}
     else if (value > 10) {drawchar(j, i, GREEN, '*');}
@@ -100,6 +100,7 @@ int main(const char *cmdline) {
 
     printf("\033\x09How many threads would you like to use?\n");
     int numThreads = getch();
+//    int numThreads = 16;
     HTHREAD threads[numThreads];
 
     realMin = -2 * NORM_FACT;
@@ -137,6 +138,6 @@ int main(const char *cmdline) {
     close(vc);
     // wait for input so the prompt doesn't ruin the lovely image
     // remove this when timing!
-//    getch();
+    getch();
     return 0;
 }
