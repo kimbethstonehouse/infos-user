@@ -112,24 +112,26 @@ int main(const char *cmdline) {
 
     int widthShared = width / numThreads;
 
+    Args args[numThreads];
+
     for (unsigned int k = 0; k < numThreads; k++) {
-        Args args = Args();
+        Args *arg = &args[k];
 
         // In the case that the screen width doesn't divide evenly by
         // the number of threads, the last thread takes any extra
         if (k == numThreads - 1) {
-            args.widthFrom = k*widthShared;
-            args.widthTo = width;
+            arg->widthFrom = k*widthShared;
+            arg->widthTo = width;
         } else {
-            args.widthFrom = k*widthShared;
-            args.widthTo = (k+1)*widthShared;
+            arg->widthFrom = k*widthShared;
+            arg->widthTo = (k+1)*widthShared;
         }
 
-        threads[k] = create_thread(mandelbrot, &args);
-        join_thread(threads[k]);
+        threads[k] = create_thread(mandelbrot, arg);
     }
 
     for (unsigned int k = 0; k < numThreads; k++) {
+        join_thread(threads[k]);
     }
 
     close(vc);
