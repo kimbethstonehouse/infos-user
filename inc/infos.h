@@ -103,6 +103,7 @@ extern void wait_proc(HPROC proc);
 
 typedef void (*ThreadProc)(void *);
 extern HTHREAD create_thread(ThreadProc tp, void *arg);
+extern void yield(HTHREAD thread);
 extern void stop_thread(HTHREAD thread);
 extern void join_thread(HTHREAD thread);
 extern void set_thread_name(HTHREAD thread, const char *name);

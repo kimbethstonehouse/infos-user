@@ -17,6 +17,11 @@ HTHREAD create_thread(ThreadProc tp, void *arg)
 	return (HTHREAD)syscall(Syscall::SYS_CREATE_THREAD, (unsigned long)tp, (unsigned long)arg);
 }
 
+void yield(HTHREAD thread)
+{
+    syscall(Syscall::SYS_YIELD, thread);
+}
+
 void stop_thread(HTHREAD thread)
 {
 	syscall(Syscall::SYS_STOP_THREAD, thread);
