@@ -5,7 +5,7 @@ export tool-src-dir := $(src-dir)/$(tool-name)
 tool-srcs := $(shell find $(tool-src-dir) | grep -E "\.cpp$$")
 tool-objs := $(tool-srcs:.cpp=.o)
 
-tool-cflags  := -g -Wall -O3 -nostdlib -nostdinc -std=gnu++17 -I$(inc-dir) -ffreestanding -fno-stack-protector
+tool-cflags  := -g -Wall -O3 -nostdlib -nostdinc -mno-sse -mno-avx -std=gnu++17 -I$(inc-dir) -ffreestanding -fno-stack-protector
 tool-ldflags := -static -nostdlib -nostdinc
 
 export BUILD-TARGET = $(patsubst $(top-dir)/%,%,$@)

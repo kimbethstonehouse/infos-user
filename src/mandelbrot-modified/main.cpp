@@ -52,7 +52,7 @@ static void mandelbrot(void *arg) {
 }
 
 int main(const char *cmdline) {
-    int numThreads = 2;
+    int numThreads = 1;
     HTHREAD threads[numThreads];
 
     realMin = -2 * NORM_FACT;

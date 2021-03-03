@@ -16,7 +16,7 @@ real-tool-clean-targets := $(patsubst %,__clean__$(bin-dir)/%,$(tool-targets))
 	
 lib-srcs := $(shell find $(lib-dir) | grep -E "\.cpp$$")
 lib-objs := $(lib-srcs:.cpp=.o)
-lib-cxxflags := -g -Wall -Wno-main -nostdlib -nostdinc -std=gnu++17 -O3 -I$(inc-dir) -fno-builtin -ffreestanding -fno-stack-protector
+lib-cxxflags := -g -Wall -Wno-main -nostdlib -nostdinc -mno-sse -mno-avx -std=gnu++17 -O3 -I$(inc-dir) -fno-builtin -ffreestanding -fno-stack-protector
 	
 fs-target := $(bin-dir)/rootfs.tar
 	

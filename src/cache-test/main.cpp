@@ -2,8 +2,8 @@
 
 #include <infos.h>
 
-volatile int array[1024]; // int 4 bytes, so each cache has 1/4 of array which is 1kb
-volatile int sum;
+int array[1024]; // int 4 bytes, so each cache has 1/4 of array which is 1kb
+int sum;
 int salt;
 
 static void thread_proc(void *arg)
@@ -11,7 +11,7 @@ static void thread_proc(void *arg)
 	unsigned int thread_num = (unsigned int)(unsigned long)arg;
 	int hash = 0;
 
-    while (hash < sum+400000) { // Each thread iterates 100,000 times
+    while (hash < sum+4000000) { // Each thread iterates 1,000,000 times
         hash = salt;
         for (int i = thread_num*256; i < (thread_num+1)*256; i++) {
             hash += array[i];

@@ -167,19 +167,19 @@ retry_format:
 				break;
 			}
 
-            case 'f': {
-                double v;
-                unsigned long l;
-
-                v = (double) va_arg(args, double);
-                l = *(unsigned long *)&v;
-//                 unsigned long *l = reinterpret_cast<unsigned long *>(&v);
-
-                rc = append_num(buffer, size - 1 - count, l, 16, false, pad_size, pad_char);
-                count += rc;
-                buffer += rc;
-                break;
-            }
+//            case 'f': {
+//                double v;
+//                unsigned long l;
+//
+//                v = (double) va_arg(args, double);
+//                l = *(unsigned long *)&v;
+////                 unsigned long *l = reinterpret_cast<unsigned long *>(&v);
+//
+//                rc = append_num(buffer, size - 1 - count, l, 16, false, pad_size, pad_char);
+//                count += rc;
+//                buffer += rc;
+//                break;
+//            }
 
 			case 'b':
 			case 'x':
