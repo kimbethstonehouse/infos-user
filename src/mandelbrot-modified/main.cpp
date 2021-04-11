@@ -2,25 +2,6 @@
 
 #include <infos.h>
 
-static HFILE vc;
-
-#define BLACK 0
-#define BLUE 2
-#define GREEN 3
-#define CYAN 4
-#define RED 4
-#define MAGENTA 5
-#define ORANGE 6
-#define L_GREY 7
-#define GREY 8
-#define L_BLUE 9
-#define L_GREEN 10
-#define L_CYAN 11
-#define L_RED 12
-#define L_MAGENTA 13
-#define YELLOW 14
-#define WHITE 15
-
 #define MAXITERATE 10000000
 #define NORM_FACT 67108864
 #define NORM_BITS 26
@@ -36,26 +17,7 @@ int next_pixel = 0;
 int *next_pixel_ptr = &next_pixel;
 int last_pixel;
 
-static void drawchar(int x, int y, int attr, unsigned char c) {
-    uint16_t u = (attr << 8) | c;
-    pwrite(vc, (const char *)&u, sizeof(u), x + (y * 80));
-}
-
-void output(int value, int i, int j) {
-    if (value == 10000000) {drawchar(j, i, BLACK, ' ');}
-    else if (value > 9000000) {drawchar(j, i, RED, '*');}
-    else if (value > 5000000) {drawchar(j, i, L_RED, '*');}
-    else if (value > 1000000) {drawchar(j, i, ORANGE, '*');}
-    else if (value > 500) {drawchar(j, i, YELLOW, '*');}
-    else if (value > 100) {drawchar(j, i, L_GREEN, '*');}
-    else if (value > 10) {drawchar(j, i, GREEN, '*');}
-    else if (value > 5) {drawchar(j, i, L_CYAN, '*');}
-    else if (value > 4) {drawchar(j, i, CYAN, '*');}
-    else if (value > 3) {drawchar(j, i, L_BLUE, '*');}
-    else if (value > 2) {drawchar(j, i, BLUE, '*');}
-    else if (value > 1) {drawchar(j, i, MAGENTA, '*');}
-    else {drawchar(j, i, L_MAGENTA, '*');}
-}
+int display[80][25];
 
 static void mandelbrot(void *arg) {
     int my_next_pixel = fetch_and_add(next_pixel_ptr, 1);
@@ -82,7 +44,7 @@ static void mandelbrot(void *arg) {
             real = realq - imagq + real0;
         }
 
-        output(count, y, x);
+        display[x][y] = count;
         my_next_pixel = fetch_and_add(next_pixel_ptr, 1);
     }
 
@@ -90,17 +52,8 @@ static void mandelbrot(void *arg) {
 }
 
 int main(const char *cmdline) {
-    vc = open("/dev/vc0", 0);
-
-    if (is_error(vc)) {
-        printf("error: unable to open vc");
-        return 1;
-    }
-
-//    printf("\033\x09How many threads would you like to use?\n");
-//    int numThreads = getch();
-    int numThreads = 4;
-   HTHREAD threads[numThreads];
+    int numThreads = 1;
+    HTHREAD threads[numThreads];
 
     realMin = -2 * NORM_FACT;
     realMax = 1 * NORM_FACT;
@@ -120,9 +73,12 @@ int main(const char *cmdline) {
         join_thread(threads[k]);
     }
 
-    close(vc);
-    // wait for input so the prompt doesn't ruin the lovely image
-    // remove this when timing!
-//    getch();
+//    for (int i = 0; i < width; i++) {
+//        for (int j = 0; j < height; j++) {
+//            printf(" %u", display[i][j]);
+//        }
+//        printf("\n");
+//    }
+
     return 0;
 }
